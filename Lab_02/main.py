@@ -1,79 +1,51 @@
-import unittest
-import numpy as np
+from functions import get_matrix_mul, get_matrix_determinant, get_matrix_inverse
+from lib import bonus, cholesky_decomposition, determ_A, system_solve
+from test import CholeskyDecomposition as cd, read_from_file, random_init
 import scipy
-import scipy.linalg
+import numpy as np
 
-import lib
-import functions as ff
+# A, b = random_init(3)  # [[2, 2, 2], [2, 5, 2], [2, 2, 7]]
+A, b = read_from_file()  # [[2.25, 3, 3],[3, 9.0625, 13],[3, 13, 24]]
+print(A)
+L = cholesky_decomposition(A)
+print('\n', "ex_1")
+print(L)
 
+det = determ_A(A)
+print('\n', "ex_2")
+print(det)
 
-class CholeskyDecomposition(unittest.TestCase):
-    m1 = [[4, 2, 8], [2, 10, 10], [8, 10, 21]]
-    A = [
-        [2.25, 3, 3],
-        [3, 9.0625, 13],
-        [3, 13, 24]
-    ]
-    b = [9, 35.0625, 61]
-    x = [0, 1, 2]
+x = system_solve(A, b)
+print('\n', "ex_3")
+print(x)
 
-    def test_1_decomp(self):
-        cd = CholeskyDecomposition
-
-        A = np.array(cd.m1)
-        L = scipy.linalg.cholesky(A, lower=True)
-        U = scipy.linalg.cholesky(A, lower=False)
-
-        res = lib.cholesky_decomposition(cd.m1)
-        np.testing.assert_array_almost_equal(res, L)
-
-    def test_2_determA(self):
-        cd = CholeskyDecomposition
-
-        det = lib.determ_A(cd.m1)
-
-        np.testing.assert_array_almost_equal(np.linalg.det(cd.m1), det)
-
-    def test_3_X_chol(self):
-        cd = CholeskyDecomposition
-
-        let = lib.system_solve(cd.A, cd.b)
-        let2 = np.linalg.solve(cd.A, cd.b)
-        np.testing.assert_array_almost_equal(let, let2)
-
-    def test_4_tsolve(self):
-        cd = CholeskyDecomposition
-
-        x_chol = lib.system_solve(cd.A, cd.b)
-        a_x_chol = ff.get_matrix_mul(cd.A, x_chol)
-        err = 0
-        for i in range(len(a_x_chol)):
-            err += (a_x_chol[i] - cd.b[i])**2
-        err = err ** 0.5
-
-        aux = np.add(a_x_chol, np.multiply(-1, cd.b))
-        self.assertAlmostEqual(np.linalg.norm(aux, 2), err)
-
-    def test_5_lu(self):
-        cd = CholeskyDecomposition
-
-        p, l, u = scipy.linalg.lu(cd.A)
-        print(p, l, u)
-        x = np.linalg.solve(cd.A, cd.b)
-        print(x)
-        self.assertTrue(True)
-
-    def test_6_inverse(self):
-        cd = CholeskyDecomposition
-
-        if ff.get_matrix_determinant(cd.A) == 0:
-            raise Exception("Invalid matrix")
-        inv = ff.get_matrix_inverse(cd.A)
-        inv2 = np.linalg.inv(cd.A)
-        np.testing.assert_array_almost_equal(inv, inv2)
-
-        print("norm", np.linalg.norm(np.subtract(inv, inv2)))
+a_x = get_matrix_mul(A, x)
 
 
-if __name__ == "__main__":
-    unittest.main()
+def get_error(a_x, b):
+    err = 0
+    for i in range(len(a_x)):
+        err += (a_x[i] - b[i]) ** 2
+    err = err ** 0.5
+    return err
+
+
+print('\n', "ex_4")
+print(get_error(a_x, b))
+
+print('\n', "ex_5")
+p, l, u = scipy.linalg.lu(A)
+print(p, l, u)
+x = np.linalg.solve(A, b)
+print(x)
+
+print('\n', "ex_6")
+if get_matrix_determinant(A) == 0:
+    raise Exception("Invalid matrix")
+
+inv = get_matrix_inverse(A)
+inv2 = np.linalg.inv(A)
+print("norm", np.linalg.norm(np.subtract(inv, inv2)))
+# print(inv)
+print("\nBONUS\n")
+bonus(A, b)
